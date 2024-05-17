@@ -11,7 +11,7 @@ jobs:
           name: terraform init & plan
           command: |
             terraform init -input=false
-            terraform plan 
+            terraform plan -var-file="terraform.tfvars"
       - persist_to_workspace:
           root: .
           paths:
@@ -25,7 +25,7 @@ jobs:
       - run:
           name: terraform
           command: |
-            terraform apply -auto-approve
+            terraform apply -auto-approve -var-file="terraform.tfvars"
       - persist_to_workspace:
           root: .
           paths:

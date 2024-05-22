@@ -206,13 +206,13 @@ data "aws_s3_bucket" "flow_logs_bucket" {
 resource "aws_s3_object" "create_vpc_folders" {
   for_each = toset(data.aws_vpcs.all.ids)
   bucket   = var.s3_bucket_name
-  key      = "flowlog/${each.value}/Awslogs/"
+  key      = "test-flowlog/${each.value}/"
 }
 
 resource "aws_flow_log" "vpc_flow_log" {
   for_each             = toset(data.aws_vpcs.all.ids)
   vpc_id               = each.value
-  log_destination      = "${data.aws_s3_bucket.flow_logs_bucket.arn}/flowlog/${each.value}/Awslogs/"
+  log_destination      = "${data.aws_s3_bucket.flow_logs_bucket.arn}/test-flowlog/${each.value}/Awslogs/"
   traffic_type         = var.traffic_type
   log_destination_type = "s3"
 

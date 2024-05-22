@@ -1,7 +1,7 @@
 variable "s3_bucket_name" {
   description = "The name of the existing S3 bucket to store flow logs"
   type        = string
-  default     = "flowlog-bcktts"  #pasing default value
+  default     = "flowlog-bcktts" #pasing default value
 }
 
 variable "traffic_type" {

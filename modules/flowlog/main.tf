@@ -1,4 +1,59 @@
 
+
+data "aws_iam_role" "flow_logs_role" {
+  name = "vpc-flowlogs-role"
+}
+
+data "aws_s3_bucket" "flow_logs_bucket" {
+  bucket = var.s3_bucket_name
+}
+
+
+
+
+resource "aws_s3_object" "create_vpc_folders" {
+  for_each = toset(data.aws_vpcs.all.ids)
+  bucket   = var.s3_bucket_name
+  key      = "test-flowlog/${each.value}/"
+}
+
+resource "aws_flow_log" "vpc_flow_log" {
+  for_each             = toset(data.aws_vpcs.all.ids)
+  vpc_id               = each.value
+  log_destination      = "${data.aws_s3_bucket.flow_logs_bucket.arn}/test-flowlog/${each.value}/Awslogs/"
+  traffic_type         = var.traffic_type
+  log_destination_type = "s3"
+
+  # log_format = "${vpc_id} ${subnet_id} ${region} ${account_id} ${az_id} ${flow_direction} ${protocol}"
+
+  destination_options {
+    file_format                = "plain-text"
+    hive_compatible_partitions = false
+    per_hour_partition         = false
+  }
+}
+
+output "flow_logs_role_arn" {
+  value = data.aws_iam_role.flow_logs_role.arn
+}
+
+output "vpc_flow_log_ids" {
+  value = values(aws_flow_log.vpc_flow_log)[*].id
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # resource "aws_s3_bucket" "flow_logs_bucket" {
 #   bucket = var.s3_bucket_name
 
@@ -187,13 +242,7 @@
 # # }
 #******************************************************************************************************************************************************
 
-data "aws_iam_role" "flow_logs_role" {
-  name = "vpc-flowlogs-role"
-}
 
-data "aws_s3_bucket" "flow_logs_bucket" {
-  bucket = var.s3_bucket_name
-}
 
 # data "aws_vpcs" "all" {}
 
@@ -203,33 +252,5 @@ data "aws_s3_bucket" "flow_logs_bucket" {
 #   key      = "flowlog/${each.value}/Awslogs/"
 # }
 
-resource "aws_s3_object" "create_vpc_folders" {
-  for_each = toset(data.aws_vpcs.all.ids)
-  bucket   = var.s3_bucket_name
-  key      = "test-flowlog/${each.value}/"
-}
 
-resource "aws_flow_log" "vpc_flow_log" {
-  for_each             = toset(data.aws_vpcs.all.ids)
-  vpc_id               = each.value
-  log_destination      = "${data.aws_s3_bucket.flow_logs_bucket.arn}/test-flowlog/${each.value}/Awslogs/"
-  traffic_type         = var.traffic_type
-  log_destination_type = "s3"
-
-  # log_format = "${vpc_id} ${subnet_id} ${region} ${account_id} ${az_id} ${flow_direction} ${protocol}"
-
-  destination_options {
-    file_format                = "plain-text"
-    hive_compatible_partitions = false
-    per_hour_partition         = false
-  }
-}
-
-output "flow_logs_role_arn" {
-  value = data.aws_iam_role.flow_logs_role.arn
-}
-
-output "vpc_flow_log_ids" {
-  value = values(aws_flow_log.vpc_flow_log)[*].id
-}
 
